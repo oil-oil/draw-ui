@@ -1,6 +1,6 @@
 # draw-ui — AI UI Design Skill
 
-A universal AI skill that generates UI design mockups and helps reconstruct generated UI screenshots into HTML/CSS. Prefer the runtime's built-in image generation when available; use **GPT Image 2** via the ZenMux API for scripted local outputs.
+A universal AI skill that generates UI design mockups and helps reconstruct generated UI screenshots into HTML/CSS or WeChat Mini Program WXML/WXSS. Prefer the runtime's built-in image generation when available; use **GPT Image 2** via the ZenMux API for scripted local outputs.
 
 ---
 
@@ -10,7 +10,7 @@ A universal AI skill that generates UI design mockups and helps reconstruct gene
 - Locks navigation/sidebar consistency across multiple screens using a reference image
 - Uses proven prompt techniques (analogy-style or inventory-style) for better design quality
 - Handles GPT Image 2's `edit_image` API quirks automatically (serial execution, retries)
-- Guides HTML reconstruction with asset strategy, browser screenshot comparison, and background-removal rules for logos and illustrations
+- Guides HTML and WeChat Mini Program reconstruction with asset strategy, screenshot comparison, and background-removal rules for logos and illustrations
 
 ## Requirements
 
@@ -81,9 +81,9 @@ Don't write layout specs (pixels, columns, padding). Instead, describe the *busi
 
 Always use real example data instead of placeholders. `"2.3M views"` produces a far more realistic output than `"show view count"`.
 
-**HTML reconstruction**
+**HTML / Mini Program reconstruction**
 
-When turning a generated mockup or screenshot into HTML/CSS, split the work into code and assets:
+When turning a generated mockup or screenshot into HTML/CSS or WeChat Mini Program WXML/WXSS, split the work into code and assets:
 
 - Build layout, cards, buttons, text, filters, and ordinary line icons with HTML/CSS/SVG.
 - Generate standalone image assets for brand logos, empty-state illustrations, glassy/3D visuals, complex gradients, and other hard-to-code visual details. Use crops only as references for image-to-image redraw, not as final assets unless the source is already high-resolution and background-clean.
@@ -91,8 +91,9 @@ When turning a generated mockup or screenshot into HTML/CSS, split the work into
 - For vendor logo rows, dark wordmarks, and small dark icons, generate a large pure-white source image and remove the white background conservatively. This avoids green fringing and protects thin strokes.
 - For colorful illustrations and product visuals, use green-screen or real transparent output when available; white-background keying can damage white cards and highlights.
 - If an icon sprite sheet is needed, make it machine-cuttable: pure white background, exact 4x4 grid, no borders, no labels, no shadows, no overlap, and each icon centered with wide padding.
+- For WeChat Mini Programs, do not generate HTML first and then mechanically convert it. Implement layout directly in WXML/WXSS/TS, place complex visual assets under `miniprogram/assets/`, and verify with WeChat DevTools or `miniprogram-automator` screenshots plus pixel diff.
 
-This keeps the HTML clean while preserving the visual parts that image generation is best at.
+This keeps the implementation clean while preserving the visual parts that image generation is best at.
 
 ## License
 

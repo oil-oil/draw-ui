@@ -1,9 +1,9 @@
 ---
 name: draw-ui
 description: >
-  Generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS. Prefer built-in image generation when available; use ZenMux + GPT Image 2 only as fallback or for scripted local outputs.
+  Generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS or WeChat Mini Program WXML/WXSS. Prefer built-in image generation when available; use ZenMux + GPT Image 2 only as fallback or for scripted local outputs.
   TRIGGER when the user says "生成图片", "画图", "设计 UI", "UI 设计", "出图", "create an image", "design a screen",
-  "landing page", "设计稿还原", "截图还原 HTML", "把图片复刻成网页", or when another skill needs image generation.
+  "landing page", "设计稿还原", "截图还原 HTML", "把图片复刻成网页", "微信小程序复刻", "小程序高保真", or when another skill needs image generation.
 ---
 
 # Draw UI Skill
@@ -52,9 +52,11 @@ Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, wh
 
 ---
 
-## 设计稿还原为 HTML 的素材策略
+## 设计稿还原为 HTML / 小程序的素材策略
 
-当用户想把生成图、截图或设计稿还原成 HTML/CSS 时，先读取 `references/html-reconstruction.md`。核心原则：页面结构优先代码化；logo、品牌符号、复杂插画、3D/玻璃质感、半透明渐变等难复刻视觉元素要素材化。裁图只作为图生图参考和定位依据，最终放进 HTML 的复杂资产要用图生图重绘，再裁边、抠图和清理边缘。
+当用户想把生成图、截图或设计稿还原成 HTML/CSS，或直接还原成微信小程序 WXML/WXSS 时，先读取 `references/html-reconstruction.md`。核心原则：页面结构优先代码化；logo、品牌符号、复杂插画、3D/玻璃质感、半透明渐变等难复刻视觉元素要素材化。裁图只作为图生图参考和定位依据，最终放进页面的复杂资产要用图生图重绘，再裁边、抠图和清理边缘。
+
+微信小程序场景不要先生成 HTML 再机械转换。优先直接落到 WXML/WXSS/TS：布局、卡片、按钮、文本和常规图标用小程序代码实现；复杂插画、空状态、hero 装饰和品牌视觉单独生成为 PNG/WebP/SVG 资产，放入 `miniprogram/assets/` 后用 `<image mode="aspectFit|widthFix">` 精确定位。验收时用微信开发者工具或 `miniprogram-automator` 截图，再做像素 diff 和人工 side-by-side 检查。
 
 透明素材策略：厂商 logo、深色 wordmark、小号深色图标优先生成大尺寸纯白底素材，再用保守白底转 alpha；复杂彩色插画、hero 装饰、产品图优先绿幕或真实透明输出。不要把小 logo 和大插画塞进同一张素材板。
 
