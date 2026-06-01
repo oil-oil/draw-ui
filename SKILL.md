@@ -1,128 +1,115 @@
 ---
 name: draw-ui
 description: >
-  Generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS. Prefer built-in image generation when available; use ZenMux + GPT Image 2 only as fallback or for scripted local outputs.
+  Generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS. Image generation is provided by external plugins, MCP servers, other skills, or user-specified tools.
   TRIGGER when the user says "生成图片", "画图", "设计 UI", "UI 设计", "出图", "create an image", "design a screen",
-  "landing page", "设计稿还原", "截图还原 HTML", "把图片复刻成网页", or when another skill needs image generation.
+  "landing page", "设计稿还原", "截图还原 HTML", "把图片复刻成网页", or when another skill needs UI design or screenshot-to-HTML reconstruction guidance.
 ---
 
 # Draw UI Skill
 
-Prefer the built-in image generation tool when it is available in the current agent/runtime. It is usually simpler, avoids provider drift, and produced landing page mockups at the same quality level as ZenMux in our comparison.
+The core purpose of `draw-ui` is to generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS.
 
-Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, when the user explicitly asks to use ZenMux, or when you need scripted local output paths. The script uses ZenMux. Default model: `openai/gpt-image-2`.
-
----
-
-## Onboarding：开始前先问用户这些问题
-
-如果用户只是泛泛地说“设计一个页面”，先用下面的问题引导用户，收集到足够信息再动手。用户已经给出明确页面、风格或参考图时，可以直接执行，不要为了流程感反复追问。
-
-### 必问（缺少任何一项都会影响质量）
-
-> **1. 你想设计哪个页面？这个页面的核心功能是什么？**
-> 不能只靠页面名称猜功能——业务理解错了，AI 会画出完全错误的东西。
-
-> **2. 你有现有的 App 截图或设计稿可以上传吗？**
-> 有截图 → 可以保持导航/侧边栏的视觉一致性。没有也可以生成，但每次结果会有差异。
-
-> **3. 如果有截图，里面有没有你不希望 AI 改动的区域（比如侧边栏、顶部导航）？**
-> 这决定了用哪种参考图策略（见下方）。
-
-### 选问（根据情况）
-
-> **你偏向什么风格？** 比如：分析型工具、温暖品牌感、极简、游戏感……
-> **需要生成多张保持一致的屏幕吗？**
+This skill does not include an image-generation backend. Image generation and image-to-image editing are provided by external plugins, MCP servers, other skills, or tools explicitly chosen by the user.
 
 ---
 
-## 根据用户回答，选择参考图策略
+## Onboarding: ask these questions first
 
-**核心原则：参考图里有什么内容，AI 就会倾向于模仿什么——包括你不想让它模仿的部分。**
+If the user only says something broad like “design a page”, ask the following questions to gather enough context before acting. If the user already provided a clear page, style, or reference image, proceed directly instead of asking just for process.
 
-| 用户情况 | 策略 |
-|---------|------|
-| 没有截图，纯创意探索 | 不传参考图，完全自由生成 |
-| 有截图，但只想锁定导航/侧边栏 ⭐ | 让用户提供或制作**纯净边框图**（把内容区涂成纯色），只传边框 |
-| 有截图，需要整体风格精准对齐 | 传完整截图，但告知用户内容区创意会受影响 |
+### Required questions
 
-**纯净边框图怎么做**：截一张 App 刚打开时内容区为空白的截图，或用任意工具把内容区覆盖为纯色。
+> **1. Which page do you want to design? What is the page's core function?**
+> Do not infer the product behavior from the page name alone. If the business context is wrong, the mockup will be wrong.
 
-如果需要生成多张一致的屏幕：**必须串行执行**（一张完成后再开始下一张），不能并行。
+> **2. Do you have an existing app screenshot or design file to use as reference?**
+> A reference screenshot can preserve navigation/sidebar visual consistency. Without one, generation is still possible, but results will vary more.
 
----
+> **3. If you have a screenshot, which areas should the model avoid changing?**
+> Examples: sidebar, top navigation, fixed chrome, brand header. This determines the reference-image strategy below.
 
-## 设计稿还原为 HTML 的素材策略
+### Optional questions
 
-当用户想把生成图、截图或设计稿还原成 HTML/CSS 时，先读取 `references/html-reconstruction.md`。核心原则：页面结构优先代码化；logo、品牌符号、复杂插画、3D/玻璃质感、半透明渐变等难复刻视觉元素要素材化。裁图只作为图生图参考和定位依据，最终放进 HTML 的复杂资产要用图生图重绘，再裁边、抠图和清理边缘。
-
-透明素材策略：厂商 logo、深色 wordmark、小号深色图标优先生成大尺寸纯白底素材，再用保守白底转 alpha；复杂彩色插画、hero 装饰、产品图优先绿幕或真实透明输出。不要把小 logo 和大插画塞进同一张素材板。
+> **What style do you prefer?** For example: analytical tool, warm brand feel, minimal, playful, enterprise SaaS.
+> **Do you need multiple screens with consistent chrome and style?**
 
 ---
 
-## 构建提示词
+## Choose a reference-image strategy from the user's answer
 
-### 两种经过验证有效的写法
+**Core principle: the model will tend to imitate whatever appears in the reference image, including parts you may not want it to imitate.**
 
-**类比法（创意效果最好）**
-说"这个工具像什么"，让 AI 借用那个参照物的设计语言，而不是描述布局。
+| User situation | Strategy |
+|----------------|----------|
+| No screenshot, pure creative exploration | Do not pass a reference image; generate freely |
+| Has screenshot, but only wants sidebar/navigation locked ⭐ | Ask for or create a **clean frame image**: keep only the sidebar/nav and cover the content area with a flat color |
+| Has screenshot and needs the whole visual style matched closely | Pass the full screenshot, but tell the user that content-area creativity will be constrained |
 
-```
-像乐谱一样解码爆款视频——Think Notion's calm focus meets a music producer's session notes.
-```
+**How to make a clean frame image**: capture the app with an empty content area, or cover the content area with a solid color in any editing tool.
 
-**清单法（最稳定，适合需要准确落地的页面）**
-列出页面上有哪些信息，不说怎么排，让 AI 自己决定布局。
-
-```
-页面包含：用户名和头像、近30天数据趋势图、活跃 Campaign 列表（名称/状态/触达数）、快捷操作入口。
-```
-
-### 质量规则
-
-- **不写排版规格**（像素、列数、padding）— 描述越具体，AI 越像在执行指令而不是做设计，结果反而更差
-- **给真实示例数据**，不用 placeholder — `"2.3M views, 180K saves"` 比 `"显示播放量"` 效果好十倍
-- **颜色用 HEX**，不用 HSL — `#f9f5f0` 比 `hsl(28 25% 97%)` 对模型更准确
-- 如果传了参考图，在 prompt 开头明确说明哪些区域需要保持不变
-- **Prompt 控制在 800 字以内** — 超长会导致 server disconnect
+If generating multiple consistent screens: **generate serially**. Finish one screen before starting the next; do not run them in parallel.
 
 ---
 
-## 执行命令
+## Asset strategy for reconstructing mockups into HTML
 
-优先级：
+When the user wants to reconstruct a generated image, screenshot, or design into HTML/CSS, read `references/html-reconstruction.md` first. Core principle: code the page structure; turn hard-to-recreate visual elements into assets. Logos, brand marks, complex illustrations, 3D/glass effects, and translucent gradients should become assets. Crops are references for image-to-image redraw and placement only; complex assets used in final HTML should be redrawn with an external image-generation capability, then cropped, masked, and edge-cleaned.
 
-1. 有内置生图工具时，优先直接使用内置生图工具。
-2. 用户明确要求 ZenMux，或需要脚本化批量生成、本地固定输出路径时，再使用 `scripts/ask_draw.sh`。
-3. 内置工具和 ZenMux 质量接近时，选择内置工具，减少额外 provider 依赖。
+Transparency strategy: for vendor logos, dark wordmarks, and small dark icons, prefer large pure-white-background source assets and conservative white-to-alpha cleanup. For colorful illustrations, hero decorations, and product visuals, prefer green-screen or real transparent output. Do not put small logos and large illustrations in the same asset sheet.
 
-```bash
-# 无参考图
-scripts/ask_draw.sh --type wide --name "screen-name" --prompt "..."
+---
 
-# 传参考图（--frame 自动作为第一个参考）
-scripts/ask_draw.sh \
-  --frame /path/to/reference.png \
-  --type wide \
-  --name "screen-name" \
-  --prompt "..."
+## Build the prompt
+
+### Two proven prompt styles
+
+**Analogy style: best for creative quality**
+Say what the tool feels like, so the model borrows design language from an analogy instead of executing layout specs.
+
+```text
+Like decoding viral videos as sheet music — Think Notion's calm focus meets a music producer's session notes.
 ```
 
-**多张屏幕**：必须串行执行（一张完成再开下一张），不能并行。偶发 disconnect 属正常，重试即可。
+**Inventory style: most stable for accurate product screens**
+List what information appears on the page, but do not specify the layout.
+
+```text
+The page includes: user name and avatar, 30-day trend chart, active Campaign list with name/status/reach, and quick action entries.
+```
+
+### Quality rules
+
+- **Do not write layout specs** such as pixels, column counts, or padding. The more mechanically specific the prompt is, the more it becomes instruction-following rather than design.
+- **Use realistic example data**, not placeholders. `"2.3M views, 180K saves"` works much better than `"show view count"`.
+- **Use HEX colors**, not HSL. `#f9f5f0` is easier for image models to interpret than `hsl(28 25% 97%)`.
+- If passing a reference image, state at the beginning of the prompt which regions must stay unchanged.
+- **Keep the prompt under 800 words.** Very long prompts can fail or be truncated by some external image-generation tools.
+
+---
+
+## Execute image generation
+
+Priority:
+
+1. If the user explicitly names an image-generation tool, use that tool.
+2. If the current environment has exactly one available image-generation tool, use it directly.
+3. If the current environment has multiple available image-generation tools and the user did not specify one, ask the user to choose; do not choose on their behalf.
+4. If no image-generation tool is available, tell the user to install or enable an external plugin, MCP server, or skill before continuing.
+
+When calling the external image-generation capability, pass the page goal, business context, realistic example data, style description, reference image and its intended use, and the target ratio or canvas type.
 
 ---
 
 ## Options
 
-| Flag | 说明 | 默认 |
-|------|------|------|
-| `--type` | `wide`(16:9) / `square`(1:1) / `portrait`(3:4) / `classic`(4:3) | `wide` |
-| `--prompt` | 提示词 | 必填 |
-| `--frame` | 参考图路径 | — |
-| `--ref` | 额外参考图（可重复）| — |
-| `--name` | 输出文件名 | auto |
-| `-o` | 自定义输出路径 | `~/.local/share/draw/outputs/YYYY-MM-DD/` |
+Different external image-generation tools use different parameter names. Map the intended ratio to whatever format the selected tool supports.
 
-成功输出：`output_path=<path>`
+| Ratio | Use case |
+|------|----------|
+| 16:9 | Desktop app screen |
+| 4:3 | Dashboard or data-heavy layout |
+| 1:1 | Card, modal, or local component |
+| 3:4 | Mobile screen |
 
-API Key 查找顺序：`ZENMUX_API_KEY` 环境变量 → `.env.local`（当前目录往上找）→ `~/.config/see/api_key`
+After successful generation, record the image path or URL. Continue HTML reconstruction and asset processing from that generated artifact.

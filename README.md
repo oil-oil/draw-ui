@@ -1,34 +1,50 @@
 # draw-ui — AI UI Design Skill
 
-A universal AI skill that generates UI design mockups and helps reconstruct generated UI screenshots into HTML/CSS. Prefer the runtime's built-in image generation when available; use **GPT Image 2** via the ZenMux API for scripted local outputs.
+English | [中文](README.zh.md)
+
+License: MIT · PRs Welcome · Model: external image-generation model, `gpt-image-2` recommended when available · Python ≥ 3.11
+
+A universal AI skill for UI design workflows: it helps agents generate UI design mockups and reconstruct generated UI screenshots into HTML/CSS.
+
+`draw-ui` does not provide an image-generation backend. Image generation is supplied by the current agent/runtime through external capabilities such as plugins, MCP servers, other skills, or a user-specified tool. This skill focuses on prompting strategy, reference-image workflow, asset strategy, and HTML reconstruction.
+
+This project is an extension and refinement of [oil-oil/draw-ui](https://github.com/oil-oil/draw-ui), not an original work from scratch. Thanks to [oil-oil](https://github.com/oil-oil) for the open-source support.
 
 ---
 
-## What it does
+## What can it do?
 
-- Generates high-quality UI mockups from natural language descriptions
+- Guides high-quality UI mockup generation from natural language descriptions
 - Locks navigation/sidebar consistency across multiple screens using a reference image
 - Uses proven prompt techniques (analogy-style or inventory-style) for better design quality
-- Handles GPT Image 2's `edit_image` API quirks automatically (serial execution, retries)
+- Delegates image generation to external plugins, MCP servers, or skills instead of binding to one provider
 - Guides HTML reconstruction with asset strategy, browser screenshot comparison, and background-removal rules for logos and illustrations
 
 ## Requirements
 
-- An AI agent that supports the skills protocol (Claude Code, Cursor, etc.)
-- For scripted image generation: a **ZenMux API key** — set as `ZENMUX_API_KEY` env var, in `.env.local`, or in `~/.config/see/api_key`
-- Python 3 (auto-installs `google-genai` on first run)
+- An AI agent/runtime that supports skills or comparable agent instructions, such as Claude Code, Cursor, Codex-like environments, OpenClaw, Hermes Agent, or similar runtimes
+- Python ≥ 3.11 for local helper scripts used in asset post-processing and HTML verification
+- `agent-browser` plus a Chromium/Chrome executable for `scripts/verify_html_mockup.sh`
+- For image/mockup generation: at least one external image-generation capability available in the current environment, such as a plugin, MCP server, another skill, or a user-specified tool
+
+Optional image-generation recommendations when no compatible capability is available:
+
+- `image2` / `image_gen` style plugins where supported by the runtime
+- [wuyoscar/GPT-Image2-Skill](https://github.com/wuyoscar/GPT-Image2-Skill) for Claude Code and other skills-based environments
+
+These are recommendations only. They are not required, and users may choose any compatible image-generation provider or tool.
 
 ## Installation
 
 ```bash
-npx skills add oil-oil/draw-ui
+npx skills add gnil0416/draw-ui
 ```
 
 Or clone manually:
 
 ```bash
 mkdir -p ~/.claude/skills
-git clone https://github.com/oil-oil/draw-ui ~/.claude/skills/draw-ui
+git clone https://github.com/gnil0416/draw-ui ~/.claude/skills/draw-ui
 ```
 
 ## Usage
@@ -39,30 +55,33 @@ Trigger by saying anything like:
 > Design a user profile screen  
 > 出图，产品详情页
 
-The agent will ask you a few questions first (what the page does, whether you have a reference screenshot, consistency requirements), then generate.
+The agent will ask a few questions first when needed: what the page does, whether you have a reference screenshot, which regions must stay consistent, and which external image-generation capability to use if more than one is available.
 
-### Manual usage via shell
+### Image generation capability
 
-```bash
-# No reference image
-scripts/ask_draw.sh --type wide --name "dashboard" --prompt "..."
+Before generating a mockup or image asset, the agent should inspect the current environment for available external image-generation tools:
 
-# With reference image (locks sidebar/nav consistency)
-scripts/ask_draw.sh \
-  --frame /path/to/sidebar-reference.png \
-  --type wide \
-  --name "dashboard" \
-  --prompt "..."
-```
+- Plugins, MCP servers, or other skills that can generate or edit images
+- In Codex-like environments, automatically check whether an `image_gen` plugin is installed and enabled
+- In Claude Code and other skill-based environments, check whether an appropriate external image-generation skill or MCP tool is available
 
-### Aspect ratio options
+Selection rules:
 
-| `--type` | Ratio | Use case |
-|----------|-------|----------|
-| `wide` | 16:9 | Desktop app screens (default) |
-| `classic` | 4:3 | Dashboard, data-heavy layouts |
-| `square` | 1:1 | Cards, modals |
-| `portrait` | 3:4 | Mobile screens |
+1. If the user explicitly specifies an image-generation tool, use that tool.
+2. If exactly one compatible image-generation capability is available, use it.
+3. If multiple compatible tools are available and the user has not specified one, ask the user to choose. Do not choose on their behalf.
+4. If no compatible image-generation capability is available, tell the user that the current environment cannot generate images yet and ask them to install or enable an external image-generation plugin, MCP server, or skill.
+
+### Aspect ratio guidance
+
+Use the aspect ratio options supported by the selected external image-generation tool. Recommended defaults:
+
+| Ratio | Use case |
+|-------|----------|
+| 16:9 | Desktop app screens |
+| 4:3 | Dashboard, data-heavy layouts |
+| 1:1 | Cards, modals |
+| 3:4 | Mobile screens |
 
 ## Key concepts
 
@@ -86,14 +105,44 @@ Always use real example data instead of placeholders. `"2.3M views"` produces a 
 When turning a generated mockup or screenshot into HTML/CSS, split the work into code and assets:
 
 - Build layout, cards, buttons, text, filters, and ordinary line icons with HTML/CSS/SVG.
-- Generate standalone image assets for brand logos, empty-state illustrations, glassy/3D visuals, complex gradients, and other hard-to-code visual details. Use crops only as references for image-to-image redraw, not as final assets unless the source is already high-resolution and background-clean.
+- Generate standalone image assets for brand logos, empty-state illustrations, glassy/3D visuals, complex gradients, and other hard-to-code visual details by using the selected external image-generation capability.
+- Use crops only as references for image-to-image redraw, not as final assets unless the source is already high-resolution and background-clean.
 - Do not mix large illustrations, logos, and small icons in the same sprite sheet. Generate large illustration assets separately.
-- For vendor logo rows, dark wordmarks, and small dark icons, generate a large pure-white source image and remove the white background conservatively. This avoids green fringing and protects thin strokes.
+- For vendor logo rows, dark wordmarks, and small dark icons, generate a large pure-white source image and remove the white background conservatively. This avoids color fringing and protects thin strokes.
 - For colorful illustrations and product visuals, use green-screen or real transparent output when available; white-background keying can damage white cards and highlights.
 - If an icon sprite sheet is needed, make it machine-cuttable: pure white background, exact 4x4 grid, no borders, no labels, no shadows, no overlap, and each icon centered with wide padding.
 
 This keeps the HTML clean while preserving the visual parts that image generation is best at.
 
+## Local helper scripts
+
+The local scripts are for post-processing and verification only; they are not image-generation providers.
+
+```bash
+# Prepare white-background logos or wordmarks as transparent PNGs
+scripts/prepare_image_asset.py vendor-logo-white.png vendor-logo-alpha.png \
+  --alpha \
+  --threshold 248 \
+  --feather 10 \
+  --padding 16
+
+# Verify an HTML reconstruction against a reference mockup
+scripts/verify_html_mockup.sh \
+  --html /path/to/page.html \
+  --reference /path/to/original-mockup.png \
+  --out-dir /path/to/verify-output \
+  --viewport 1024x1536
+
+# Compare existing screenshots directly
+scripts/compare_mockup.py \
+  --reference /path/to/original-mockup.png \
+  --candidate /path/to/browser-screenshot.png \
+  --out-dir /path/to/compare-output \
+  --prefix landing
+```
+
 ## License
 
 MIT
+
+PRs welcome.
