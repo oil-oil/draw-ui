@@ -1,7 +1,7 @@
 ---
 name: draw-ui
 description: >
-  Generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS. Prefer built-in image generation when available; use ZenMux + GPT Image 2 only as fallback or for scripted local outputs.
+  Generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS. Prefer built-in image generation when available; use ZenMux + GPT Image 2 for scripted local outputs, or the optional Codex/OpenAI-compatible provider in Codex environments.
   TRIGGER when the user says "生成图片", "画图", "设计 UI", "UI 设计", "出图", "create an image", "design a screen",
   "landing page", "设计稿还原", "截图还原 HTML", "把图片复刻成网页", or when another skill needs image generation.
 ---
@@ -10,7 +10,9 @@ description: >
 
 Prefer the built-in image generation tool when it is available in the current agent/runtime. It is usually simpler, avoids provider drift, and produced landing page mockups at the same quality level as ZenMux in our comparison.
 
-Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, when the user explicitly asks to use ZenMux, or when you need scripted local output paths. The script uses ZenMux. Default model: `openai/gpt-image-2`.
+Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, when the user explicitly asks to use ZenMux, or when you need scripted local output paths. The script uses ZenMux by default. Default model: `openai/gpt-image-2`.
+
+In Codex environments, `scripts/ask_draw.sh --provider codex` or `scripts\ask_draw.ps1 --provider codex` can call the active OpenAI-compatible Codex provider through the Responses API. Use `--mode replicate` for whole-screen replication, `--mode frame-lock` for preserving app chrome, and `--mode asset-redraw` for local crop-to-clean-asset workflows.
 
 ---
 
