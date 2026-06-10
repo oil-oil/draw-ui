@@ -6,6 +6,34 @@ Use this workflow when the user wants to turn a screenshot, generated mockup, or
 
 Rebuild the UI inside the existing software architecture, preserving maintainability and behavior while matching the reference image closely. Do not treat this as a one-off static HTML export unless the user explicitly asks for static HTML.
 
+## Screenshot Calibration Protocol
+
+This is the core author-style workflow adapted for software projects. The key idea is simple: do not turn the whole screenshot into one large background. Make the page structure real software, and turn only the hard-to-reproduce visual blocks into image assets.
+
+1. Get the original image.
+   Preserve the original design draft or screenshot. Record canvas size, first-screen viewport, key component positions, and which regions must remain visually consistent.
+
+2. Classify elements.
+   Text, buttons, cards, tables, forms, layout, and ordinary icons become code. Brand marks, complex illustrations, subtle textures, glass/3D material, miniature product panels, and hard-to-code visual blocks become assets.
+
+3. Build the skeleton.
+   Lock the page width, grid, spacing, typography scale, and responsive behavior first. The software screen must be usable before decorative fidelity work starts.
+
+4. Generate assets.
+   Use local crops only as image-to-image references. Regenerate final assets as clean high-resolution versions, then remove white/green backgrounds or produce transparent PNG/WebP assets.
+
+5. Place assets back into the page.
+   Put generated assets into the TypeScript app at the original position, scale, layer, and visual relationship. Do this with real layout constraints rather than one-off absolute hacks unless the existing app uses that pattern.
+
+6. Calibrate typography and layout.
+   Tune font family, weight, line height, text block width, wrapping position, spacing, and color independently. Do not let pretty assets hide incorrect text rhythm.
+
+7. Compare screenshots.
+   Open the implemented screen in a browser at the reference viewport. Capture a viewport screenshot and compare it against the original with `compare_mockup.py`. Use clips for important regions.
+
+8. Iterate.
+   Fix the most obvious batch of differences first: layout, function card positions, typography, asset scale, color, and shadows. Repeat screenshot comparison until the remaining gaps are understood and acceptable.
+
 ## Triage
 
 Before editing code, identify:
