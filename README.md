@@ -11,6 +11,7 @@ A universal AI skill that generates UI design mockups and helps reconstruct gene
 - Uses proven prompt techniques (analogy-style or inventory-style) for better design quality
 - Handles GPT Image 2's `edit_image` API quirks automatically (serial execution, retries)
 - Guides HTML reconstruction with asset strategy, browser screenshot comparison, and background-removal rules for logos and illustrations
+- Guides software reconstruction for TypeScript/React/Next.js and existing frontend apps, not just standalone HTML
 
 ## Requirements
 
@@ -120,6 +121,8 @@ When turning a generated mockup or screenshot into HTML/CSS, split the work into
 - If an icon sprite sheet is needed, make it machine-cuttable: pure white background, exact 4x4 grid, no borders, no labels, no shadows, no overlap, and each icon centered with wide padding.
 
 This keeps the HTML clean while preserving the visual parts that image generation is best at.
+
+For existing app codebases, read `references/software-reconstruction.md` before implementation. It treats TypeScript/React/Next.js/Vue/Svelte reconstruction as a software task: inspect the project stack, use existing components and tokens, implement typed UI, capture browser screenshots, compare against the reference, and iterate.
 
 ## License
 

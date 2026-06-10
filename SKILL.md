@@ -14,6 +14,8 @@ Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, wh
 
 In Codex environments, `scripts/ask_draw.sh --provider codex` or `scripts\ask_draw.ps1 --provider codex` can call the active OpenAI-compatible Codex provider through the Responses API. Use `--mode replicate` for whole-screen replication, `--mode frame-lock` for preserving app chrome, and `--mode asset-redraw` for local crop-to-clean-asset workflows.
 
+When the user wants to reconstruct a screenshot or generated mockup into a real app, especially TypeScript, React, Next.js, Vue, Svelte, Electron, Tauri, or an existing frontend repo, read `references/software-reconstruction.md` first. Treat static HTML as a fallback only when no app stack is available or the user explicitly asks for standalone HTML.
+
 ---
 
 ## Onboarding：开始前先问用户这些问题
