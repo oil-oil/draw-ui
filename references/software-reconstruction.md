@@ -32,7 +32,7 @@ This is the core author-style workflow adapted for software projects. The key id
    Open the implemented screen in a browser at the reference viewport. Capture a viewport screenshot and compare it against the original with `compare_mockup.py`. Use clips for important regions.
 
 8. Iterate.
-   Fix the most obvious batch of differences first: layout, function card positions, typography, asset scale, color, and shadows. Repeat screenshot comparison until the remaining gaps are understood and acceptable.
+   Fix differences region by region: hero, navigation, logo row, feature cards, metrics panels, charts, and other major sections. In each iteration, solve only the most obvious batch of differences. Repeat screenshot comparison until the remaining gaps are understood and acceptable.
 
 ## Triage
 
