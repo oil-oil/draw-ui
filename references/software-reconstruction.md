@@ -47,6 +47,50 @@ Classify each visual element before coding:
 
 When generating assets, use `ask_draw.ps1` or `ask_draw.sh` with `--mode asset-redraw`, then clean the output with `prepare_image_asset.py` if transparency or cropping is needed.
 
+## Screenshot-To-Asset Fill Loop
+
+Use this loop when a screenshot contains visual regions that should be filled back into a TypeScript app as image assets:
+
+1. Implement the app screen skeleton first: layout, typography, cards, controls, routing, and states.
+2. Capture a browser screenshot of the current implementation at the same viewport as the reference.
+3. Run `compare_mockup.py` against the reference and candidate screenshot.
+4. Inspect the heatmap and identify regions where code is the wrong tool: logos, complex illustrations, glass/3D material, decorative product panels, dense integration maps, special textures, or hard-to-code chart ornaments.
+5. For each region, create a named crop from the reference image. Treat the crop as guidance, not as the final asset unless it is already high-resolution and clean.
+6. Generate one asset at a time with `--mode asset-redraw` and the crop as `--frame` or `--ref`.
+7. Post-process the generated asset: crop padding, remove white or green background, despill edges, and export to the app's asset directory.
+8. Import the asset in the TypeScript component using the project's existing asset pattern.
+9. Place the asset with stable dimensions, `object-fit`, responsive constraints, and accessible alt text when the asset carries meaning.
+10. Capture another browser screenshot and compare again. Iterate region by region instead of regenerating the whole screen.
+
+Do not generate all assets in one sprite sheet unless the output is meant to be machine-cut. Separate large illustrations, logos, small icons, and decorative textures. This keeps each generated asset crisp and makes TypeScript placement predictable.
+
+Suggested asset file naming:
+
+```text
+src/assets/reconstructed/<screen-name>/<region-name>.png
+src/assets/reconstructed/<screen-name>/<region-name>.webp
+src/assets/reconstructed/<screen-name>/<region-name>-alpha.png
+```
+
+Suggested React/TypeScript usage:
+
+```tsx
+import heroPanelUrl from "@/assets/reconstructed/dashboard/hero-panel.png";
+
+export function DashboardHeroPanel() {
+  return (
+    <img
+      className="dashboardHeroPanel"
+      src={heroPanelUrl}
+      alt=""
+      aria-hidden="true"
+    />
+  );
+}
+```
+
+Use empty `alt` and `aria-hidden="true"` for decorative assets. Use descriptive alt text only when the image conveys product content that is not otherwise present in the UI.
+
 ## TypeScript Reconstruction Loop
 
 1. Inspect the existing route/component tree and styling conventions.
@@ -56,8 +100,9 @@ When generating assets, use `ask_draw.ps1` or `ask_draw.sh` with `--mode asset-r
 5. Start the dev server using the project's normal command.
 6. Capture a browser screenshot at the reference viewport.
 7. Run `compare_mockup.py` against the reference and candidate screenshot.
-8. Iterate on layout, typography, color, asset scale, and responsive constraints until the visible deltas are acceptable.
-9. Run the project checks that fit the repo: TypeScript, lint, unit tests, build, and visual screenshot checks.
+8. Use the screenshot-to-asset fill loop for any region where generated assets are the right tool.
+9. Iterate on layout, typography, color, asset scale, and responsive constraints until the visible deltas are acceptable.
+10. Run the project checks that fit the repo: TypeScript, lint, unit tests, build, and visual screenshot checks.
 
 ## Verification Commands
 
