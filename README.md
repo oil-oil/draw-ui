@@ -1,6 +1,6 @@
 # draw-ui — AI UI Design Skill
 
-A universal AI skill that generates UI design mockups and helps reconstruct generated UI screenshots into HTML/CSS. Prefer the runtime's built-in image generation when available; use **GPT Image 2** via the ZenMux API for scripted local outputs.
+A universal AI skill that generates UI design mockups and helps reconstruct generated UI screenshots into HTML/CSS. Prefer the runtime's built-in image generation when available; use **GPT Image 2** via the ZenMux API for scripted local outputs, or the optional Codex/OpenAI-compatible provider when running inside Codex.
 
 ---
 
@@ -11,10 +11,12 @@ A universal AI skill that generates UI design mockups and helps reconstruct gene
 - Uses proven prompt techniques (analogy-style or inventory-style) for better design quality
 - Handles GPT Image 2's `edit_image` API quirks automatically (serial execution, retries)
 - Guides HTML reconstruction with asset strategy, browser screenshot comparison, and background-removal rules for logos and illustrations
+- Guides software reconstruction for TypeScript/React/Next.js and existing frontend apps, not just standalone HTML
 
 ## Requirements
 
 - An AI agent that supports the skills protocol (Claude Code, Cursor, etc.)
+- For Codex/OpenAI-compatible generation: `OPENAI_IMAGE_API_KEY`, `OPENAI_API_KEY`, or Codex `auth.json`
 - For scripted image generation: a **ZenMux API key** — set as `ZENMUX_API_KEY` env var, in `.env.local`, or in `~/.config/see/api_key`
 - Python 3 (auto-installs `google-genai` on first run)
 
@@ -64,6 +66,32 @@ scripts/ask_draw.sh \
 | `square` | 1:1 | Cards, modals |
 | `portrait` | 3:4 | Mobile screens |
 
+### Codex / Windows usage
+
+The default backend remains ZenMux. In Codex environments, use `--provider codex` to call the active OpenAI-compatible Codex provider through the Responses API.
+
+```powershell
+# Windows PowerShell, whole-screen replication
+scripts\ask_draw.ps1 `
+  --provider codex `
+  --mode replicate `
+  --frame C:\path\to\reference.png `
+  --type wide `
+  --name "dashboard-replica" `
+  --prompt "Recreate this UI screen as closely as possible."
+```
+
+```bash
+# Bash-compatible shells, Codex/OpenAI-compatible provider
+scripts/ask_draw.sh \
+  --provider codex \
+  --mode frame-lock \
+  --frame /path/to/sidebar-reference.png \
+  --type wide \
+  --name "dashboard" \
+  --prompt "Design the dashboard content area while preserving the app chrome."
+```
+
 ## Key concepts
 
 **Reference image strategy**
@@ -93,6 +121,8 @@ When turning a generated mockup or screenshot into HTML/CSS, split the work into
 - If an icon sprite sheet is needed, make it machine-cuttable: pure white background, exact 4x4 grid, no borders, no labels, no shadows, no overlap, and each icon centered with wide padding.
 
 This keeps the HTML clean while preserving the visual parts that image generation is best at.
+
+For existing app codebases, read `references/software-reconstruction.md` before implementation. It treats TypeScript/React/Next.js/Vue/Svelte reconstruction as a software task: inspect the project stack, use existing components and tokens, implement typed UI, capture browser screenshots, compare against the reference, and iterate.
 
 ## License
 
