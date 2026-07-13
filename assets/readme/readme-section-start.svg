@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="138" viewBox="0 0 1200 138" role="img" aria-label="06 怎么使用">
+  <defs><pattern id="d" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#19211f" fill-opacity=".09"/></pattern></defs>
+  <rect width="1200" height="138" rx="20" fill="#f3f5f0"/><rect width="1200" height="138" rx="20" fill="url(#d)"/>
+  <text x="54" y="34" fill="#59635f" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif" font-size="16" font-weight="700" letter-spacing="2.7">INSTALL · DESCRIBE · DRAW</text><rect x="54" y="49" width="50" height="5" rx="3" fill="#ff8a6e"/>
+  <text x="54" y="105" fill="#19211f" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif" font-size="42" font-weight="750">怎么使用</text>
+  <g transform="translate(930 47)"><rect width="176" height="42" rx="13" fill="#19211f"/><path d="M26 15l9 6-9 6M44 27h18" fill="none" stroke="#f3f5f0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="138" cy="21" r="6" fill="#ff8a6e"/><circle cx="156" cy="21" r="6" fill="#c7f46b"/></g>
+  <text x="1090" y="103" fill="#19211f" fill-opacity=".13" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="72" font-weight="800">06</text>
+</svg>
