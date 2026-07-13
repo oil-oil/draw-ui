@@ -129,6 +129,10 @@ scripts/ask_draw.sh \
 
 </details>
 
+<p align="center">
+  <sub>这份 README 使用 <a href="https://github.com/oil-oil/beautify-github-readme"><code>beautify-github-readme</code></a> 完成内容整理和视觉设计。</sub>
+</p>
+
 ## License
 
 MIT
