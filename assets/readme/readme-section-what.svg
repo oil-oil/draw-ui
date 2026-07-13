@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="138" viewBox="0 0 1200 138" role="img" aria-label="02 draw-ui 是什么">
+  <defs><pattern id="d" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#19211f" fill-opacity=".09"/></pattern></defs>
+  <rect width="1200" height="138" rx="20" fill="#f3f5f0"/><rect width="1200" height="138" rx="20" fill="url(#d)"/>
+  <text x="54" y="34" fill="#59635f" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif" font-size="16" font-weight="700" letter-spacing="2.7">DESIGN MOCKUPS · REBUILD IN CODE</text><rect x="54" y="49" width="50" height="5" rx="3" fill="#ff8a6e"/>
+  <text x="54" y="105" fill="#19211f" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif" font-size="42" font-weight="750">draw-ui 是什么</text>
+  <g transform="translate(935 31)"><rect width="126" height="76" fill="#fff" stroke="#5b6bff" stroke-width="2"/><rect x="-5" y="-5" width="10" height="10" fill="#f3f5f0" stroke="#5b6bff"/><rect x="121" y="-5" width="10" height="10" fill="#f3f5f0" stroke="#5b6bff"/><rect x="-5" y="71" width="10" height="10" fill="#f3f5f0" stroke="#5b6bff"/><rect x="121" y="71" width="10" height="10" fill="#f3f5f0" stroke="#5b6bff"/></g>
+  <text x="1090" y="103" fill="#19211f" fill-opacity=".13" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="72" font-weight="800">02</text>
+</svg>
