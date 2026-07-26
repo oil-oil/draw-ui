@@ -127,7 +127,33 @@ scripts/ask_draw.sh \
 
 脚本使用 ZenMux。API Key 可以放在 `ZENMUX_API_KEY`、项目的 `.env.local`，或 `~/.config/see/api_key`。
 
+也可以显式使用 OpenAI Responses API。该路径不会读取 Codex 的本地登录凭据，需要设置 `OPENAI_IMAGE_API_KEY` 或 `OPENAI_API_KEY`。提示词和参考图会发送到所选 API；脚本默认设置 `store: false`，不创建可继续的服务端会话状态：
+
+```powershell
+# Windows PowerShell：完整复刻参考界面
+scripts\ask_draw.ps1 `
+  --provider codex `
+  --mode replicate `
+  --frame C:\path\to\reference.png `
+  --type wide `
+  --name "dashboard-replica" `
+  --prompt "Recreate this UI screen as closely as possible."
+```
+
+```bash
+# macOS / Linux：保留应用外框，只生成内容区
+scripts/ask_draw.sh \
+  --provider codex \
+  --mode frame-lock \
+  --frame /path/to/sidebar-reference.png \
+  --type wide \
+  --name "dashboard" \
+  --prompt "Design the dashboard content area while preserving the app chrome."
+```
+
 </details>
+
+如果目标仓库是 TypeScript、React、Next.js、Vue、Svelte、Electron 或 Tauri 项目，先阅读 `references/software-reconstruction.md`。默认在现有应用架构里复刻 UI；只有明确需要一次性原型时才退回独立 HTML。
 
 <p align="center">
   <a href="https://github.com/oil-oil/beautify-github-readme"><img src="./assets/readme/made-with-beautify.svg" width="300" alt="README made with beautify-github-readme"></a>
