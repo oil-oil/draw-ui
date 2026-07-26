@@ -79,6 +79,7 @@ class GenerateImageTests(unittest.TestCase):
             request_payload = json.loads(captured["request"].data)
             self.assertEqual(request_payload["model"], "gpt-5.6-sol")
             self.assertEqual(request_payload["tool_choice"], "required")
+            self.assertIs(request_payload["store"], False)
             self.assertEqual(request_payload["tools"][0]["size"], "1536x864")
             self.assertEqual(final_path.read_bytes(), png)
             self.assertEqual(captured["request"].headers["Authorization"], "Bearer test-key")

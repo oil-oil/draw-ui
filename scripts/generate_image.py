@@ -307,6 +307,7 @@ def request_codex_image(
         "model": model,
         "instructions": "Use the image_generation tool to create exactly the requested image. Do not add extra text.",
         "stream": False,
+        "store": False,
         "input": [{"role": "user", "content": content}],
         "tools": [{"type": "image_generation", "size": CODEX_SIZE_PRESETS.get(image_type, "1024x1024")}],
         "tool_choice": "required",

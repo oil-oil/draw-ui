@@ -127,7 +127,7 @@ scripts/ask_draw.sh \
 
 脚本使用 ZenMux。API Key 可以放在 `ZENMUX_API_KEY`、项目的 `.env.local`，或 `~/.config/see/api_key`。
 
-也可以显式使用 OpenAI Responses API。该路径不会读取 Codex 的本地登录凭据，需要设置 `OPENAI_IMAGE_API_KEY` 或 `OPENAI_API_KEY`：
+也可以显式使用 OpenAI Responses API。该路径不会读取 Codex 的本地登录凭据，需要设置 `OPENAI_IMAGE_API_KEY` 或 `OPENAI_API_KEY`。提示词和参考图会发送到所选 API；脚本默认设置 `store: false`，不创建可继续的服务端会话状态：
 
 ```powershell
 # Windows PowerShell：完整复刻参考界面
