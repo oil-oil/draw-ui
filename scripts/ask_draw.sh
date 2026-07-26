@@ -3,16 +3,44 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="${DRAW_VENV:-$HOME/.cache/draw/venv}"
-PYTHON_BIN="${DRAW_PYTHON:-$VENV_DIR/bin/python3}"
+PROVIDER="${DRAW_PROVIDER:-zenmux}"
+RAW_ARGS=("$@")
+for ((i = 0; i < ${#RAW_ARGS[@]}; i++)); do
+  case "${RAW_ARGS[$i]}" in
+    --provider)
+      if [[ $((i + 1)) -ge ${#RAW_ARGS[@]} ]]; then
+        echo "[ERROR] --provider requires zenmux or codex." >&2
+        exit 2
+      fi
+      PROVIDER="${RAW_ARGS[$((i + 1))]}"
+      ((i += 1))
+      ;;
+    --provider=*)
+      PROVIDER="${RAW_ARGS[$i]#--provider=}"
+      ;;
+  esac
+done
 
-if [[ ! -x "$PYTHON_BIN" ]]; then
-  mkdir -p "$VENV_DIR"
-  python3 -m venv "$VENV_DIR"
-fi
+case "$PROVIDER" in
+  codex)
+    PYTHON_BIN="${DRAW_PYTHON:-python3}"
+    ;;
+  zenmux)
+    PYTHON_BIN="${DRAW_PYTHON:-$VENV_DIR/bin/python3}"
+    if [[ ! -x "$PYTHON_BIN" ]]; then
+      mkdir -p "$VENV_DIR"
+      python3 -m venv "$VENV_DIR"
+    fi
 
-if ! "$PYTHON_BIN" -c "import google.genai, PIL" >/dev/null 2>&1; then
-  PIP_DISABLE_PIP_VERSION_CHECK=1 "$PYTHON_BIN" -m pip install --quiet --upgrade pip google-genai pillow
-fi
+    if ! "$PYTHON_BIN" -c "import google.genai, PIL" >/dev/null 2>&1; then
+      PIP_DISABLE_PIP_VERSION_CHECK=1 "$PYTHON_BIN" -m pip install --quiet --upgrade pip google-genai pillow
+    fi
+    ;;
+  *)
+    echo "[ERROR] Invalid provider '$PROVIDER'; expected zenmux or codex." >&2
+    exit 2
+    ;;
+esac
 
 # --frame <path>: prepend a frame reference image before all other --ref args.
 # Usage: ask_draw.sh --frame /path/to/frame.png [other args...]

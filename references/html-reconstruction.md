@@ -19,7 +19,7 @@
 - `*.wxml`：页面结构、卡片、按钮、列表、文案层级。
 - `*.wxss`：rpx 尺寸、字体、颜色、阴影、圆角、定位和响应式。
 - `*.ts` / `*.js`：状态、交互和页面数据。
-- `miniprogram/assets/`：复杂插画、logo、空状态、hero 装饰、纹理和图生图重绘后的素材。
+- `${miniprogramRoot}/assets/`：复杂插画、logo、空状态、hero 装饰、纹理和图生图重绘后的素材。若配置中的 `miniprogramRoot` 是 `miniprogram/`，实际目录就是 `miniprogram/assets/`，WXML 的资源路径从该根目录写起。
 
 小程序里推荐这样分工：
 
@@ -46,10 +46,14 @@ miniprogram/assets/generated/
 局部裁图参考 -> 图生图重绘高清素材 -> 抠图/清边/裁边 -> 放入 assets -> WXML image 引用 -> 开发者工具截图验证
 ```
 
-小程序里引用素材示例：
+小程序里引用素材示例（`mode` 每次只能取一个合法值）：
 
 ```xml
 <image class="hero-illustration" src="/assets/illustrations/ai-tools-hero.png" mode="aspectFit" />
+```
+
+```xml
+<image class="banner" src="/assets/illustrations/banner.png" mode="widthFix" />
 ```
 
 ```css
@@ -62,7 +66,7 @@ miniprogram/assets/generated/
 }
 ```
 
-小程序验证不要用普通浏览器截图替代。优先使用微信开发者工具模拟器截图；自动化时可以用 `miniprogram-automator` 连接开发者工具，打开指定页面、截图，再用 pixel diff 和人工 side-by-side 检查。浏览器验证只适合 HTML 原型，不代表小程序真实渲染。
+小程序验证不要用普通浏览器截图替代。优先使用微信开发者工具模拟器，并固定同一设备预设、页面 viewport 宽高和 DPR；截图对比只取页面可视区，排除系统状态栏、胶囊按钮和开发者工具栏。自动化时可以用 `miniprogram-automator` 连接开发者工具，打开指定页面、截图，再用 pixel diff 和人工 side-by-side 检查。浏览器验证只适合 HTML 原型，不代表小程序真实渲染。
 
 ## 关键判断
 

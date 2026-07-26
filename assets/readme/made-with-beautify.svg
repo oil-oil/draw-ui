@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="64" viewBox="0 0 420 64" role="img" aria-labelledby="title desc">
+  <title id="title">README made with beautify-github-readme</title>
+  <desc id="desc">A compact draw-ui styled credit linking to beautify-github-readme.</desc>
+  <rect x=".5" y=".5" width="419" height="63" rx="14" fill="#F3F5F0" stroke="#D9DED7"/>
+  <rect x="18" y="20" width="28" height="24" fill="#FFFFFF" stroke="#5B6BFF" stroke-width="1.6"/>
+  <rect x="15.5" y="17.5" width="5" height="5" fill="#FF8A6E"/>
+  <rect x="43.5" y="41.5" width="5" height="5" fill="#FF8A6E"/>
+  <text x="62" y="25" fill="#737C78" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="10" font-weight="700" letter-spacing="1.7">README MADE WITH</text>
+  <text x="62" y="47" fill="#19211F" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="15" font-weight="750">beautify-github-readme</text>
+  <rect x="372" y="17" width="32" height="30" rx="9" fill="#5B6BFF"/>
+  <path d="M382 37l11-11M386 26h7v7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

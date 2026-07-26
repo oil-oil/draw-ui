@@ -1,7 +1,7 @@
 ---
 name: draw-ui
 description: >
-  Generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS or WeChat Mini Program WXML/WXSS. Prefer built-in image generation when available; use ZenMux + GPT Image 2 only as fallback or for scripted local outputs.
+  Generate UI design mockups and help reconstruct generated UI screenshots into HTML/CSS or WeChat Mini Program WXML/WXSS. Prefer built-in image generation when available; use ZenMux + GPT Image 2 for scripted local outputs, or the optional Codex/OpenAI-compatible provider in Codex environments.
   TRIGGER when the user says "生成图片", "画图", "设计 UI", "UI 设计", "出图", "create an image", "design a screen",
   "landing page", "设计稿还原", "截图还原 HTML", "把图片复刻成网页", "微信小程序复刻", "小程序高保真", or when another skill needs image generation.
 ---
@@ -10,7 +10,11 @@ description: >
 
 Prefer the built-in image generation tool when it is available in the current agent/runtime. It is usually simpler, avoids provider drift, and produced landing page mockups at the same quality level as ZenMux in our comparison.
 
-Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, when the user explicitly asks to use ZenMux, or when you need scripted local output paths. The script uses ZenMux. Default model: `openai/gpt-image-2`.
+Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, when the user explicitly asks to use ZenMux, or when you need scripted local output paths. The script uses ZenMux by default. Default model: `openai/gpt-image-2`.
+
+In Codex environments, `scripts/ask_draw.sh --provider codex` or `scripts\ask_draw.ps1 --provider codex` can call an OpenAI-compatible Responses API using `OPENAI_IMAGE_API_KEY` or `OPENAI_API_KEY`. The script does not reuse Codex login credentials. Use `--mode replicate` for whole-screen replication, `--mode frame-lock` for preserving app chrome, and `--mode asset-redraw` for local crop-to-clean-asset workflows.
+
+When the user wants to reconstruct a screenshot or generated mockup into a real app, especially TypeScript, React, Next.js, Vue, Svelte, Electron, Tauri, or an existing frontend repo, read `references/software-reconstruction.md` first. Treat static HTML as a fallback only when no app stack is available or the user explicitly asks for standalone HTML.
 
 ---
 
@@ -56,7 +60,7 @@ Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, wh
 
 当用户想把生成图、截图或设计稿还原成 HTML/CSS，或直接还原成微信小程序 WXML/WXSS 时，先读取 `references/html-reconstruction.md`。核心原则：页面结构优先代码化；logo、品牌符号、复杂插画、3D/玻璃质感、半透明渐变等难复刻视觉元素要素材化。裁图只作为图生图参考和定位依据，最终放进页面的复杂资产要用图生图重绘，再裁边、抠图和清理边缘。
 
-微信小程序场景不要先生成 HTML 再机械转换。优先直接落到 WXML/WXSS/TS：布局、卡片、按钮、文本和常规图标用小程序代码实现；复杂插画、空状态、hero 装饰和品牌视觉单独生成为 PNG/WebP/SVG 资产，放入 `miniprogram/assets/` 后用 `<image mode="aspectFit|widthFix">` 精确定位。验收时用微信开发者工具或 `miniprogram-automator` 截图，再做像素 diff 和人工 side-by-side 检查。
+微信小程序场景不要先生成 HTML 再机械转换。优先直接落到 WXML/WXSS 与 TS/JS：布局、卡片、按钮、文本和常规图标用小程序代码实现；复杂插画、空状态、hero 装饰和品牌视觉单独生成为 PNG/WebP/SVG 资产，放入 `${miniprogramRoot}/assets/`。若 `miniprogramRoot` 为 `miniprogram/`，实际目录就是 `miniprogram/assets/`，WXML 资源路径从该根目录写起，例如分别使用合法的 `mode="aspectFit"` 或 `mode="widthFix"`。验收时在微信开发者工具固定设备预设、页面 viewport 宽高和 DPR；截图只取页面可视区，排除系统状态栏、胶囊按钮和工具栏，再用 `miniprogram-automator`（如需自动化）截图、pixel diff 与人工 side-by-side 检查。
 
 透明素材策略：厂商 logo、深色 wordmark、小号深色图标优先生成大尺寸纯白底素材，再用保守白底转 alpha；复杂彩色插画、hero 装饰、产品图优先绿幕或真实透明输出。不要把小 logo 和大插画塞进同一张素材板。
 
