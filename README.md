@@ -6,14 +6,14 @@
   <img src="./assets/readme/readme-section-what.svg" width="100%" alt="02 draw-ui 是什么">
 </p>
 
-`draw-ui` 是一个给 Agent 使用的 UI 设计 Skill。它可以把一段页面需求变成完整的 UI 设计稿，也可以把已有截图或生成图还原成可以运行的 HTML/CSS。
+`draw-ui` 是一个给 Agent 使用的 UI 设计 Skill。它可以把一段页面需求变成完整的 UI 设计稿，也可以把已有截图或生成图还原成可以运行的 HTML/CSS 或微信小程序页面。
 
 上面的三张页面都来自 `draw-ui` 的真实生成流程：一张信息密集的分析后台、一张温暖的建筑研究工作台，以及一个手机订餐页面。页面类型和风格可以不同，但开始方式是一样的——先理解页面要解决什么，再决定怎么画。
 
 | 我们提供 | draw-ui 负责 | 最后得到 |
 | --- | --- | --- |
 | 页面目标、真实内容、现有截图和不能改动的区域 | 梳理需求、选择参考图策略、组织提示词并生成设计 | 一张或一组 UI 设计稿 |
-| 已确认的设计稿或产品截图 | 拆分代码与图片素材，构建页面并反复对照 | 可以运行的 HTML/CSS 页面 |
+| 已确认的设计稿或产品截图 | 拆分代码与图片素材，构建页面并反复对照 | 可以运行的 HTML/CSS 页面或微信小程序页面 |
 
 默认优先使用 Agent 当前内置的图片生成能力。只有环境里没有内置工具、明确需要 ZenMux，或需要脚本固定本地输出路径时，才会使用仓库里的生成脚本。
 
@@ -53,7 +53,7 @@
 如果要生成多张视觉一致的页面，会先确认第一张，再把它作为下一张的参考，逐张完成。这样比同时生成多张更容易保持导航、字体和组件一致。
 
 <p align="center">
-  <img src="./assets/readme/readme-section-rebuild.svg" width="100%" alt="05 怎么把设计稿还原成 HTML">
+  <img src="./assets/readme/readme-section-rebuild.svg" width="100%" alt="05 怎么把设计稿还原成 HTML 或微信小程序">
 </p>
 
 还原设计稿不是把整张截图铺成网页背景。`draw-ui` 会把页面拆成代码和图片素材两部分：
@@ -66,12 +66,24 @@
 设计稿或截图
   → 判断页面结构
   → 整理需要单独生成的素材
-  → 构建 HTML/CSS
-  → 浏览器截图
+  → 按目标环境构建 HTML/CSS 或小程序页面
+  → 在对应工具中截图
   → 与原图对照并修正
 ```
 
 Logo、小号深色图标和大幅彩色插画不会混在同一张素材板里。不同素材使用不同的生成与抠图方式，避免白边、绿边和模糊文字进入最终页面。
+
+还原时按目标环境选择流程：
+
+- **HTML/CSS**：先阅读 `references/html-reconstruction.md`，用浏览器固定参考图的 viewport 截图，再做像素对比；TypeScript、React、Vue 等现有项目优先阅读 `references/software-reconstruction.md` 并沿用项目架构。
+- **微信小程序**：不要先生成 HTML 再机械转换，直接用 WXML/WXSS 与 TS/JS 实现布局、交互和数据；复杂插画、Logo、纹理等放进 `${miniprogramRoot}/assets/`。若 `miniprogramRoot` 是 `miniprogram/`，文件应放在 `miniprogram/assets/`，WXML 的 `src` 按该根目录引用，例如：
+
+  ```xml
+  <image class="hero" src="/assets/illustrations/hero.png" mode="aspectFit" />
+  <image class="banner" src="/assets/illustrations/banner.png" mode="widthFix" />
+  ```
+
+  在微信开发者工具中固定同一设备预设、页面 viewport 宽高和 DPR；截图对比只取页面可视区，排除系统状态栏、胶囊按钮和开发者工具栏。需要自动化时，可用 `miniprogram-automator` 连接开发者工具后截图，再做 pixel diff 与人工 side-by-side 检查。
 
 <p align="center">
   <img src="./assets/readme/readme-section-start.svg" width="100%" alt="06 怎么使用">
