@@ -12,7 +12,7 @@ Prefer the built-in image generation tool when it is available in the current ag
 
 Use `scripts/ask_draw.sh` only when built-in image generation is unavailable, when the user explicitly asks to use ZenMux, or when you need scripted local output paths. The script uses ZenMux by default. Default model: `openai/gpt-image-2`.
 
-In Codex environments, `scripts/ask_draw.sh --provider codex` or `scripts\ask_draw.ps1 --provider codex` can call the active OpenAI-compatible Codex provider through the Responses API. Use `--mode replicate` for whole-screen replication, `--mode frame-lock` for preserving app chrome, and `--mode asset-redraw` for local crop-to-clean-asset workflows.
+In Codex environments, `scripts/ask_draw.sh --provider codex` or `scripts\ask_draw.ps1 --provider codex` can call an OpenAI-compatible Responses API using `OPENAI_IMAGE_API_KEY` or `OPENAI_API_KEY`. The script does not reuse Codex login credentials. Use `--mode replicate` for whole-screen replication, `--mode frame-lock` for preserving app chrome, and `--mode asset-redraw` for local crop-to-clean-asset workflows.
 
 When the user wants to reconstruct a screenshot or generated mockup into a real app, especially TypeScript, React, Next.js, Vue, Svelte, Electron, Tauri, or an existing frontend repo, read `references/software-reconstruction.md` first. Treat static HTML as a fallback only when no app stack is available or the user explicitly asks for standalone HTML.
 

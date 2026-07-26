@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import argparse
 import base64
+import binascii
 import json
 import mimetypes
 import os
 import re
 import sys
 import tempfile
+import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
@@ -16,17 +18,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterable
 
-try:
-    import tomllib
-except ModuleNotFoundError:  # Python < 3.11 can still use env-based Codex config.
-    tomllib = None
-
 DEFAULT_MODEL = os.getenv("DRAW_MODEL", "openai/gpt-image-2")
 DEFAULT_PROVIDER = os.getenv("DRAW_PROVIDER", "zenmux")
 DEFAULT_BASE_URL = os.getenv("ZENMUX_VERTEX_BASE_URL", "https://zenmux.ai/api/vertex-ai")
 DEFAULT_OUTPUT_ROOT = Path.home() / ".local" / "share" / "draw" / "outputs"
 DEFAULT_MIME = "image/png"
-DEFAULT_CODEX_MODEL = os.getenv("DRAW_CODEX_MODEL", "")
+DEFAULT_CODEX_MODEL = os.getenv("DRAW_CODEX_MODEL", "gpt-5.6")
 
 
 
@@ -230,75 +227,21 @@ def render_response(*, response, output_path: Path) -> tuple[str, str]:
     return final_path.as_posix(), "\n".join([t for t in text_parts if t]).strip()
 
 
-def codex_home() -> Path:
-    return Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
-
-
-def load_codex_config() -> dict:
-    if tomllib is None:
-        return {}
-    config_path = codex_home() / "config.toml"
-    if not config_path.exists():
-        return {}
-    try:
-        with config_path.open("rb") as handle:
-            return tomllib.load(handle)
-    except (OSError, tomllib.TOMLDecodeError):
-        return {}
-
-
-def active_codex_base_url(config: dict) -> str:
-    provider_name = config.get("model_provider")
-    providers = config.get("model_providers", {})
-    if provider_name and isinstance(providers, dict):
-        provider = providers.get(provider_name)
-        if isinstance(provider, dict):
-            base_url = provider.get("base_url")
-            if isinstance(base_url, str) and base_url.strip():
-                return base_url.strip().rstrip("/")
-    return ""
-
-
-def active_codex_model(config: dict) -> str:
-    model = config.get("model")
-    if isinstance(model, str) and model.strip():
-        return model.strip()
-    return ""
-
-
-def load_codex_api_key() -> str:
-    auth_path = codex_home() / "auth.json"
-    if not auth_path.exists():
-        return ""
-    try:
-        payload = json.loads(auth_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return ""
-    key = payload.get("OPENAI_API_KEY")
-    return key.strip() if isinstance(key, str) else ""
-
-
 def resolve_codex_api_key() -> str:
-    key = os.getenv("OPENAI_IMAGE_API_KEY") or os.getenv("OPENAI_API_KEY") or load_codex_api_key()
+    key = os.getenv("OPENAI_IMAGE_API_KEY") or os.getenv("OPENAI_API_KEY")
     return key.strip() if key else ""
 
 
 def resolve_codex_base_url() -> str:
-    config = load_codex_config()
-    base_url = (
-        os.getenv("OPENAI_IMAGE_BASE_URL")
-        or active_codex_base_url(config)
-        or "https://api.openai.com/v1"
-    ).rstrip("/")
+    base_url = (os.getenv("OPENAI_IMAGE_BASE_URL") or "https://api.openai.com/v1").rstrip("/")
     parsed = urllib.parse.urlparse(base_url)
     if parsed.scheme and parsed.netloc and parsed.path in ("", "/"):
         return f"{base_url}/v1"
     return base_url
 
 
-def resolve_codex_model() -> str:
-    config = load_codex_config()
-    return DEFAULT_CODEX_MODEL or active_codex_model(config) or "gpt-5.5"
+def resolve_codex_model(override: str = "") -> str:
+    return override.strip() or DEFAULT_CODEX_MODEL
 
 
 def join_endpoint(base_url: str, endpoint: str) -> str:
@@ -349,21 +292,24 @@ def find_image_result_recursive(value: object) -> str | None:
     return None
 
 
-def request_codex_image(*, prompt: str, refs: list[Path], image_type: str, output_path: Path) -> Path:
+def request_codex_image(
+    *, prompt: str, refs: list[Path], image_type: str, model: str, output_path: Path
+) -> Path:
     api_key = resolve_codex_api_key()
     if not api_key:
-        raise RuntimeError("No OPENAI_IMAGE_API_KEY, OPENAI_API_KEY, or Codex auth.json OPENAI_API_KEY found.")
+        raise RuntimeError("No OPENAI_IMAGE_API_KEY or OPENAI_API_KEY found.")
 
     base_url = resolve_codex_base_url()
     endpoint = join_endpoint(base_url, "responses")
     content: list[dict] = [{"type": "input_text", "text": prompt}]
     content.extend(ref_to_input_image(ref) for ref in refs)
     payload = {
-        "model": resolve_codex_model(),
+        "model": model,
         "instructions": "Use the image_generation tool to create exactly the requested image. Do not add extra text.",
         "stream": False,
         "input": [{"role": "user", "content": content}],
         "tools": [{"type": "image_generation", "size": CODEX_SIZE_PRESETS.get(image_type, "1024x1024")}],
+        "tool_choice": "required",
     }
     request = urllib.request.Request(
         endpoint,
@@ -381,6 +327,8 @@ def request_codex_image(*, prompt: str, refs: list[Path], image_type: str, outpu
     except urllib.error.HTTPError as exc:
         details = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"HTTP {exc.code} from Codex image API:\n{details}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Could not reach Codex image API: {exc.reason}") from exc
 
     try:
         response_payload = json.loads(raw)
@@ -393,7 +341,11 @@ def request_codex_image(*, prompt: str, refs: list[Path], image_type: str, outpu
 
     final_path = output_path if output_path.suffix else output_path.with_suffix(".png")
     final_path.parent.mkdir(parents=True, exist_ok=True)
-    final_path.write_bytes(base64.b64decode(image_b64))
+    try:
+        image_bytes = base64.b64decode(image_b64, validate=True)
+    except (binascii.Error, ValueError, TypeError) as exc:
+        raise RuntimeError("Codex image API returned invalid base64 image data.") from exc
+    final_path.write_bytes(image_bytes)
     return final_path
 
 
@@ -406,7 +358,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("-o", "--output", default="", help="Output image path.")
     parser.add_argument("--provider", choices=["zenmux", "codex"], default=DEFAULT_PROVIDER, help="Image backend.")
     parser.add_argument("--mode", choices=sorted(MODE_PROMPTS.keys()), default="normal", help="UI prompt wrapper.")
-    parser.add_argument("--model", default=DEFAULT_MODEL, help="Model override.")
+    parser.add_argument("--model", default="", help="Model override (defaults per provider).")
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help=argparse.SUPPRESS)
     return parser.parse_args()
 
@@ -468,6 +420,7 @@ def main() -> int:
     args = parse_args()
     aspect_ratio = ASPECT_RATIOS[args.type]
     prompt = effective_prompt(args.prompt, args.mode)
+    model = resolve_codex_model(args.model) if args.provider == "codex" else (args.model or DEFAULT_MODEL)
 
     with tempfile.TemporaryDirectory(prefix="draw-refs-") as tmp:
         tmp_dir = Path(tmp)
@@ -481,7 +434,13 @@ def main() -> int:
         )
 
         if args.provider == "codex":
-            final_path = request_codex_image(prompt=prompt, refs=refs, image_type=args.type, output_path=output_path)
+            final_path = request_codex_image(
+                prompt=prompt,
+                refs=refs,
+                image_type=args.type,
+                model=model,
+                output_path=output_path,
+            )
             response_text = ""
         else:
             api_key = resolve_api_key()
@@ -494,23 +453,23 @@ def main() -> int:
 
             genai, types = load_genai()
             # OpenAI image models via ZenMux can take longer; bump timeout to 5 minutes.
-            timeout = 300 if _uses_generate_images_api(args.model) else 120
+            timeout = 300 if _uses_generate_images_api(model) else 120
             client = genai.Client(
                 api_key=api_key,
                 vertexai=True,
                 http_options=types.HttpOptions(api_version="v1", base_url=args.base_url, timeout=timeout * 1000),
             )
 
-            if _uses_generate_images_api(args.model):
+            if _uses_generate_images_api(model):
                 image_bytes, response_text = _run_generate_images(
-                    client=client, model=args.model, prompt=prompt, refs=refs, types=types,
+                    client=client, model=model, prompt=prompt, refs=refs, types=types,
                 )
                 final_path = output_path if output_path.suffix else output_path.with_suffix(".png")
                 final_path.parent.mkdir(parents=True, exist_ok=True)
                 final_path.write_bytes(image_bytes)
             else:
                 response = client.models.generate_content(
-                    model=args.model,
+                    model=model,
                     contents=build_contents(prompt=prompt, types=types, refs=refs),
                     config=types.GenerateContentConfig(
                         response_modalities=["TEXT", "IMAGE"],
@@ -530,7 +489,7 @@ def main() -> int:
             "refs": [str(path) for path in refs],
             "provider": args.provider,
             "mode": args.mode,
-            "model": args.model if args.provider == "zenmux" else resolve_codex_model(),
+            "model": model,
             "base_url": args.base_url if args.provider == "zenmux" else resolve_codex_base_url(),
             "output_path": str(final_path),
             "response_text": response_text,
