@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "profiles": {
+    "default": [
+      {
+        "manifest": "default.json",
+        "env": "ZENMUX_API_KEY"
+      }
+    ],
+    "openai": [
+      {
+        "manifest": "openai.json",
+        "env": "OPENAI_API_KEY"
+      }
+    ]
+  }
+}

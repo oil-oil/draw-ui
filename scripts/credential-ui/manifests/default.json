@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "id": "draw-ui",
+  "label": "图片生成服务 API Key",
+  "credential": "draw-ui/zenmux/default",
+  "ui": {
+    "title": "配置服务",
+    "placeholder": "粘贴该服务的 API Key",
+    "saveLabel": "保存"
+  }
+}

@@ -1,14 +1,14 @@
 # 生成工具与接口边界
 
-用户指定服务和模型时使用相应能力；同时指定其他生成 Skill 时遵循它的鉴权和调用流程。其余情况优先宿主内置生图工具，需要固定本地输出路径时可使用本目录脚本。不要把一次体验中的质量或速度比较写成永久的模型优劣结论。
+用户指定服务和模型时使用相应能力；同时指定其他生成 Skill 时遵循它的鉴权和调用流程。其余情况使用宿主内置生图工具，无需额外 Key。固定路径通过生成后复制文件完成；不因路径、尺寸或质量偏好自动切换 API。随附脚本仅在用户明确选择外部服务或同意备用 API 路径后调用。不要把一次体验中的质量或速度比较写成永久的模型优劣结论。
 
 命令示例显式使用bash，避免下载压缩包安装时丢失可执行权限。
 
 脚本默认使用 ZenMux，默认模型为 `openai/gpt-image-2`；可用 `--model` 显式覆盖。调用前按当前服务目录确认用户指定的模型ID，遇到歧义先解析，不猜测收费版本。
 
 ```bash
-bash scripts/ask_draw.sh --type wide --name "dashboard" --prompt "页面提示词"
-bash scripts/ask_draw.sh --frame /path/to/reference.png --type wide --name "dashboard" --prompt "保留固定区域的页面提示词"
+node "$SKILL_DIR/scripts/credential-ui/src/profile.ts" run default -- bash "$SKILL_DIR/scripts/ask_draw.sh" --type wide --name "dashboard" --prompt "页面提示词"
+node "$SKILL_DIR/scripts/credential-ui/src/profile.ts" run default -- bash "$SKILL_DIR/scripts/ask_draw.sh" --frame /path/to/reference.png --type wide --name "dashboard" --prompt "保留固定区域的页面提示词"
 ```
 
 | 参数 | 作用 |
@@ -24,7 +24,7 @@ bash scripts/ask_draw.sh --frame /path/to/reference.png --type wide --name "dash
 
 优先通过已有安全凭据管理在运行时注入环境变量，不新建明文凭据文件。ZenMux 密钥兼容脚本的查找顺序：`ZENMUX_API_KEY`、项目及上层 `.env.local`、`~/.config/see/api_key`。使用其他宿主的 ZenMux 工具时沿用其安全凭据管理，不复制密钥或新建明文副本。
 
-OpenAI Responses API 适配器通过 `--provider codex` 选择，读取 `OPENAI_IMAGE_API_KEY` 或 `OPENAI_API_KEY`，不复用宿主登录凭据。Windows 使用 `scripts/ask_draw.ps1`，macOS/Linux 使用 `scripts/ask_draw.sh`。需要设置密钥时使用宿主已有的安全入口，不输出密钥值。
+OpenAI Responses API 适配器通过 `--provider codex` 选择，读取 `OPENAI_IMAGE_API_KEY` 或 `OPENAI_API_KEY`，不复用宿主登录凭据。Windows 使用 `scripts/ask_draw.ps1`，macOS/Linux 使用 `scripts/ask_draw.sh`。需要设置密钥时按 [API Key 配置](api-key-setup.md) 复用现成入口或展示固定页面，不输出密钥值。选择 `--provider codex` 时使用 `run openai` 包装；默认适配器使用 `run default`。
 
 生图成功会输出 `output_path` 和 `metadata_path`。实际打开并检查文件；记录使用的模型、提示词、参考、真实尺寸和待修正项。已有文件应使用新路径保留，不静默覆盖。
 
