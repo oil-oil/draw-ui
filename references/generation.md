@@ -1,8 +1,8 @@
 # 生成工具与接口边界
 
-用户指定服务和模型时使用相应能力；同时指定其他生成 Skill 时遵循它的鉴权和调用流程。其余情况使用宿主内置生图工具，无需额外 Key。固定路径通过生成后复制文件完成；不因路径、尺寸或质量偏好自动切换 API。随附脚本仅在用户明确选择外部服务或同意备用 API 路径后调用。不要把一次体验中的质量或速度比较写成永久的模型优劣结论。
+工具选择以主流程为准。本文件说明可选服务适配器与图片输入边界；适配器名称不代表通用设计流程依赖特定宿主。
 
-命令示例显式使用bash，避免下载压缩包安装时丢失可执行权限。
+外部服务凭据按 [API Key 配置与业务读取](api-key-setup.md) 接入。以下示例的 SKILL_DIR 是本 Skill 的绝对目录；已通过配置页保存的凭据须由包装入口注入。命令显式使用 bash，避免下载压缩包安装时丢失可执行权限。
 
 脚本默认使用 ZenMux，默认模型为 `openai/gpt-image-2`；可用 `--model` 显式覆盖。调用前按当前服务目录确认用户指定的模型ID，遇到歧义先解析，不猜测收费版本。
 
@@ -24,7 +24,7 @@ node "$SKILL_DIR/scripts/credential-ui/src/profile.ts" run default -- bash "$SKI
 
 优先通过已有安全凭据管理在运行时注入环境变量，不新建明文凭据文件。ZenMux 密钥兼容脚本的查找顺序：`ZENMUX_API_KEY`、项目及上层 `.env.local`、`~/.config/see/api_key`。使用其他宿主的 ZenMux 工具时沿用其安全凭据管理，不复制密钥或新建明文副本。
 
-OpenAI Responses API 适配器通过 `--provider codex` 选择，读取 `OPENAI_IMAGE_API_KEY` 或 `OPENAI_API_KEY`，不复用宿主登录凭据。Windows 使用 `scripts/ask_draw.ps1`，macOS/Linux 使用 `scripts/ask_draw.sh`。需要设置密钥时按 [API Key 配置](api-key-setup.md) 复用现成入口或展示固定页面，不输出密钥值。选择 `--provider codex` 时使用 `run openai` 包装；默认适配器使用 `run default`。
+OpenAI Responses API 适配器通过 `--provider codex` 选择，读取 `OPENAI_IMAGE_API_KEY` 或 `OPENAI_API_KEY`，不复用宿主登录凭据。Windows 使用 `scripts/ask_draw.ps1`，macOS/Linux 使用 `scripts/ask_draw.sh`。需要设置密钥时按 API Key 配置文档复用现成入口或展示固定页面，不输出密钥值。选择 `--provider codex` 时使用 `run openai` 包装；默认适配器使用 `run default`。
 
 生图成功会输出 `output_path` 和 `metadata_path`。实际打开并检查文件；记录使用的模型、提示词、参考、真实尺寸和待修正项。已有文件应使用新路径保留，不静默覆盖。
 
@@ -34,4 +34,4 @@ OpenAI Responses API 适配器通过 `--provider codex` 选择，读取 `OPENAI_
 
 用户提供视觉参考时，分别核验模型、服务接口和当前脚本能否接收图片。脚本没有参考图参数不等于模型不支持；先查对应服务官方接口，再决定是否通过已有SDK或任务内适配器传入。未实际提交图片时，只能称为文字提炼参考，不能说模型看过原图。
 
-ZenMux的OpenAI兼容接口公开支持POST /images/edits；本地参考图优先使用multipart/form-data上传实际文件，文件字段为image[]；JSON请求使用images数组，每项为image_url，可传base64 data URL。不要误用generations接口或将路径字符串冒充图像输入。区分请求封装、传输形式与模型能力，按当前接口返回验证成功，不能根据一种格式的失败断言整个模型不支持参考图。当前具体模型仍需校验，并检查响应。接口依据：https://zenmux.ai/docs/api/openai/create-image-edit.html 。有图与纯文字测试分组记录，两模型使用相同参考图片字节、顺序、提示词与参数；只改变模型。
+ZenMux的OpenAI兼容接口公开支持POST /images/edits；本地参考图优先使用multipart/form-data上传实际文件，文件字段为image[]；JSON请求使用images数组，每项为image_url，可传base64 data URL。不要误用generations接口或将路径字符串冒充图像输入。区分请求封装、传输形式与模型能力，按当前接口返回验证成功，不能根据一种格式的失败断言整个模型不支持参考图。当前具体模型仍需校验，并检查响应。接口依据：https://zenmux.ai/docs/api/openai/create-image-edit.html 。模型对比按 [UI 设计与验收](ui-design.md) 固定输入。
